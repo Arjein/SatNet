@@ -1,0 +1,10 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+# Ignore models directory
+models/
+
+# Ignore virtual environment directory
+penv/
+
+logs/
