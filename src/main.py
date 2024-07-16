@@ -49,7 +49,7 @@ def train_model(sb_alg):
             print('Algorithm not found')
             return
 
-    TIMESTEPS = 50000
+    TIMESTEPS = 10240
     iters = 0
 
     while True:
@@ -57,21 +57,46 @@ def train_model(sb_alg):
         model.learn(total_timesteps=TIMESTEPS, reset_num_timesteps = False)
         model.save(f"{model_dir}/{sb_alg}_{TIMESTEPS*iters}")
 
+def continue_training(model_path):
+
+    alg_name = model_path.split('/')[2].split('_')[0]
+
+    print("Alg Name:",alg_name)
+    
+    env = gym.make("Ant-v4", render_mode=None)
+    model = PPO.load(model_path)
+    print(model.policy.action_dist)
+    if isinstance(model.policy.action_dist, BetaDistribution):
+        print("EVET BETA")
+        env = RescaleAction(env, min_action=0.0, max_action=1.0)
+    model.set_env(env)
+    iterations = model.num_timesteps
+    print("Iterations:", iterations)
+    print("model_num_timstpes",model.num_timesteps)
+    TIMESTEPS = 10240
+    iters = 0
+    while True:
+        iters += 1
+        model.learn(total_timesteps=TIMESTEPS, reset_num_timesteps = False)
+        model.save(f"{model_dir}/{alg_name}_{iterations+TIMESTEPS*iters}")
+
 
 def test(model_path):
     
     
-    model = PPO.load(model_path)
+    
     env = gym.make("Ant-v4", render_mode="human")
     
+    model = PPO.load(model_path)
+    print(model.policy.action_dist)
     if isinstance(model.policy.action_dist, BetaDistribution):
-        print("Environment beta Scaled ACtion dims")
+        print("EVET BETA")
         env = RescaleAction(env, min_action=0.0, max_action=1.0)
-
+    model.set_env(env)
     print("Environment Action Space:",env.action_space)
     observation, info = env.reset()
     for _ in range(100000):
-        action, _ = model.predict(observation, deterministic=True)  # agent policy that uses the observation and info
+        action, _ = model.predict(observation, deterministic=False)  # agent policy that uses the observation and info
         observation, reward, terminated, truncated, info = env.step(action)
 
         if terminated or truncated:
@@ -87,12 +112,15 @@ if __name__ == '__main__':
     
     parser.add_argument('-a', '--sb3_algo', type=str, default='PPO', help='StableBaseline3 RL algorithm i.e. SAC, TD3 (default: PPO)')
     parser.add_argument('-t', '--train', action='store_true')
+    parser.add_argument('-ct', '--continuetraining', metavar='path_to_model',type=str)
     parser.add_argument('-s', '--test', metavar='path_to_model', type=str, help='Specify the path to the model to test.')
     
     args = parser.parse_args()
     
     if args.train:
         train_model(args.sb3_algo)
+    if args.continuetraining:
+        continue_training(args.continuetraining)
 
     if(args.test):
         if os.path.isfile(args.test):
