@@ -17,10 +17,13 @@ class BetaPolicy(ActorCriticPolicy):
         observation_space: spaces.Space,
         action_space: spaces.Space,
         lr_schedule: Callable[[float], float],
+        last_layer_dim_pi: int = 64,
+        last_layer_dim_vf: int = 64,
         *args,
         **kwargs,
     ):
-        
+        self.last_layer_dim_pi = last_layer_dim_pi
+        self.last_layer_dim_vf = last_layer_dim_vf
         super().__init__(
             observation_space,
             action_space,
@@ -32,7 +35,7 @@ class BetaPolicy(ActorCriticPolicy):
 
 
     def _build_mlp_extractor(self) -> None:
-        self.mlp_extractor = NerveAttentionNetwork(self.features_dim)
+        self.mlp_extractor = NerveAttentionNetwork(self.features_dim, last_layer_dim_pi=self.last_layer_dim_pi, last_layer_dim_vf=self.last_layer_dim_vf)
 
     
         
@@ -95,10 +98,13 @@ class NormalPolicy(ActorCriticPolicy):
         observation_space: spaces.Space,
         action_space: spaces.Space,
         lr_schedule: Callable[[float], float],
+        last_layer_dim_pi: int = 64,
+        last_layer_dim_vf: int = 64,
         *args,
         **kwargs,
     ):
-        
+        self.last_layer_dim_pi = last_layer_dim_pi
+        self.last_layer_dim_vf = last_layer_dim_vf
         super().__init__(
             observation_space,
             action_space,
@@ -108,7 +114,10 @@ class NormalPolicy(ActorCriticPolicy):
             **kwargs,
         )
 
-
+        
+        
     def _build_mlp_extractor(self) -> None:
-        self.mlp_extractor = NerveAttentionNetwork(self.features_dim)
+        print("Self last layer pi:", self.last_layer_dim_pi)
+        print("Self last layer vf:", self.last_layer_dim_vf)
+        self.mlp_extractor = NerveAttentionNetwork(self.features_dim, last_layer_dim_pi=self.last_layer_dim_pi, last_layer_dim_vf=self.last_layer_dim_vf)
 

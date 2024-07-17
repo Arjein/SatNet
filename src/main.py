@@ -29,6 +29,7 @@ def train_model(sb_alg):
                 policy_kwargs={'features_extractor_class': GraphFeatureExtractor},
                 verbose=1,
                 tensorboard_log=log_dir_alg,
+                batch_size=128,
                 seed=29,
                 )   
 
