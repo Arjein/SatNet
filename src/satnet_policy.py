@@ -3,7 +3,7 @@ from gymnasium import spaces
 from stable_baselines3.common.policies import ActorCriticPolicy
 from stable_baselines3.common.type_aliases import Schedule
 from beta_distribution import BetaDistribution
-from nerve_attention_net import NerveAttentionNetwork
+from satnet import SatNet
 import numpy as np
 from torch import nn
 import torch as th
@@ -11,7 +11,13 @@ from stable_baselines3.common.distributions import Distribution
 from functools import partial
 from stable_baselines3.common.preprocessing import get_action_dim
 
-class BetaPolicy(ActorCriticPolicy):
+class SatNetBeta(ActorCriticPolicy):
+    """
+    SatNetBeta is an actor-critic policy that uses SatNet for feature extraction
+    and a Beta distribution in order to sample actions from the Beta distribution. 
+    This class integrates the custom SatNet architecture with the Beta distribution 
+    to allow for precise action spaces.
+    """
     def __init__(
         self,
         observation_space: spaces.Space,
@@ -35,7 +41,12 @@ class BetaPolicy(ActorCriticPolicy):
 
 
     def _build_mlp_extractor(self) -> None:
-        self.mlp_extractor = NerveAttentionNetwork(self.features_dim, last_layer_dim_pi=self.last_layer_dim_pi, last_layer_dim_vf=self.last_layer_dim_vf)
+        """
+        Build the MLP (Multi-Layer Perceptron) extractor using the SatNet architecture.
+        This replaces the default MLP extractor in the base ActorCriticPolicy with a custom
+        graph-based network.
+        """
+        self.mlp_extractor = SatNet(self.features_dim, last_layer_dim_pi=self.last_layer_dim_pi, last_layer_dim_vf=self.last_layer_dim_vf)
 
     
         
@@ -58,8 +69,7 @@ class BetaPolicy(ActorCriticPolicy):
             raise NotImplementedError(f"Unsupported distribution '{self.action_dist}'.")
 
         self.value_net = nn.Linear(self.mlp_extractor.latent_dim_vf, 1)
-        # Init weights: use orthogonal initialization
-        # with small initial weight for the output
+
         if self.ortho_init:
             
             module_gains = {
@@ -70,8 +80,6 @@ class BetaPolicy(ActorCriticPolicy):
                 self.value_net: 1,
             }
             if not self.share_features_extractor:
-                # Note(antonin): this is to keep SB3 results
-                # consistent, see GH#1148
                 del module_gains[self.features_extractor]
                 module_gains[self.pi_features_extractor] = np.sqrt(2)
                 module_gains[self.vf_features_extractor] = np.sqrt(2)
@@ -80,11 +88,20 @@ class BetaPolicy(ActorCriticPolicy):
                 module.apply(partial(self.init_weights, gain=gain))
 
         # Setup optimizer with initial learning rate
-        self.optimizer = self.optimizer_class(self.parameters(), lr=lr_schedule(1), **self.optimizer_kwargs)  # type: ignore[call-arg]
+        self.optimizer = self.optimizer_class(self.parameters(), lr=lr_schedule(1), **self.optimizer_kwargs) 
 
     def _get_action_dist_from_latent(self, latent_pi: th.Tensor) -> Distribution:
+        """
+        Compute the action distribution with Beta distribution.
+
+        Parameters:
+        latent_pi (Tensor): The latent representation from the policy network.
+
+        Returns:
+        Distribution: The probability distribution of actions.
+        """
         if isinstance(self.action_dist, BetaDistribution):
-            softplus = th.nn.Softplus()
+            softplus = th.nn.Softplus() # Apply softplus to ensure positivity of alpha and beta parameters.
             alpha = softplus(self.alpha_net(latent_pi)) + 1.0
             beta = softplus(self.beta_net(latent_pi)) + 1.0
             return self.action_dist.proba_distribution(alpha, beta)
@@ -92,7 +109,13 @@ class BetaPolicy(ActorCriticPolicy):
             return super()._get_action_dist_from_latent(latent_pi)
 
 
-class NormalPolicy(ActorCriticPolicy):
+class SatNetGaussian(ActorCriticPolicy):
+    """
+    SatNetGaussian is an actor-critic policy that uses SatNet for feature extraction
+    and a Gaussian distribution for modeling the policy. This class integrates the custom
+    SatNet architecture with the Gaussian distribution to allow for continuous action spaces.
+    """
+
     def __init__(
         self,
         observation_space: spaces.Space,
@@ -117,7 +140,5 @@ class NormalPolicy(ActorCriticPolicy):
         
         
     def _build_mlp_extractor(self) -> None:
-        print("Self last layer pi:", self.last_layer_dim_pi)
-        print("Self last layer vf:", self.last_layer_dim_vf)
-        self.mlp_extractor = NerveAttentionNetwork(self.features_dim, last_layer_dim_pi=self.last_layer_dim_pi, last_layer_dim_vf=self.last_layer_dim_vf)
+        self.mlp_extractor = SatNet(self.features_dim, last_layer_dim_pi=self.last_layer_dim_pi, last_layer_dim_vf=self.last_layer_dim_vf)
 

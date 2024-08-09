@@ -2,7 +2,7 @@ import gymnasium as gym
 from stable_baselines3 import PPO
 from gymnasium.wrappers import RescaleAction
 from beta_distribution import BetaDistribution
-from beta_policy import BetaPolicy, NormalPolicy
+from satnet_policy import BetaPolicy, NormalPolicy
 from graph_feature_extractor import GraphFeatureExtractor
 
 
