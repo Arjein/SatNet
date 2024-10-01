@@ -15,7 +15,7 @@ class GraphFeatureExtractor(BaseFeaturesExtractor):
     velocity_indices (dict): A dictionary mapping node names to their corresponding velocity slices in the observation tensor.
     edge_index (Tensor): A tensor representing the edges in the graph.
     """
-    def __init__(self, observation_space: gym.Space, environment,features_dim = 11):
+    def __init__(self, observation_space: gym.Space, features_dim = 11):
         """
         Initializes the GraphFeatureExtractor with observation space, environment, and features dimension.
 
@@ -27,7 +27,7 @@ class GraphFeatureExtractor(BaseFeaturesExtractor):
         super(GraphFeatureExtractor, self).__init__(observation_space, features_dim)  # features_dim doesn’t matter here
         
       
-
+        environment = "Ant-v4"
         if environment == "Humanoid-v4" or environment == "HumanoidStandup-v4":
             print("Env: Humanoid GFE")    
             self.features_dim = 11

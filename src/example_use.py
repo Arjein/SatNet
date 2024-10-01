@@ -16,7 +16,7 @@ from stable_baselines3.common.distributions import Distribution
 from functools import partial
 from stable_baselines3.common.preprocessing import get_action_dim
 from graph_feature_extractor import GraphFeatureExtractor
-from satnet_policy import SatNetBeta, SatNetGaussian
+from beta_policy import SatNetBeta, SatNetGaussian
 
 from gymnasium.wrappers import RescaleAction
 from stable_baselines3 import PPO

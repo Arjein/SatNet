@@ -4,7 +4,8 @@ import os
 from stable_baselines3 import PPO
 from gymnasium.wrappers import RescaleAction
 from beta_distribution import BetaDistribution
-from satnet_policy import SatNetBeta, SatNetGaussian
+#from beta_policy import SatNetBeta, SatNetGaussian
+from beta_policy import BetaPolicy, NormalPolicy
 from graph_feature_extractor import GraphFeatureExtractor
 from stable_baselines3.common.evaluation import evaluate_policy
 import torch
@@ -12,6 +13,7 @@ import random
 import numpy as np
 import json
 from noise_wrapper import NoisyObservationWrapper
+from moviepy.editor import ImageSequenceClip
 
 # Set the seed
 # Set seed for random
@@ -38,7 +40,7 @@ def train_model(environment, sb_alg):
         case 'BETA':
             env = RescaleAction(env, min_action=0.0, max_action=1.0)
             model = PPO(
-                SatNetBeta,
+                BetaPolicy,
                 env,
                 policy_kwargs= dict(
                     features_extractor_class=GraphFeatureExtractor,
@@ -53,7 +55,7 @@ def train_model(environment, sb_alg):
 
         case 'GAUSSIAN':
             model = PPO(
-                SatNetGaussian,
+                NormalPolicy,
                 env,
                 policy_kwargs= dict(
                     features_extractor_class=GraphFeatureExtractor,
@@ -106,7 +108,7 @@ def test(environment, model_path):
     
     
     
-    env = gym.make(environment, render_mode="human")
+    env = gym.make(environment, render_mode='human')
     model = PPO.load(model_path)
     print(model.policy.action_dist)
     
@@ -116,14 +118,22 @@ def test(environment, model_path):
     model.set_env(env)
     print("Environment Action Space:",env.action_space)
     observation, info = env.reset()
-    for _ in range(100000):
-        action, _ = model.predict(observation, deterministic=False)  # agent policy that uses the observation and info
-        observation, reward, terminated, truncated, info = env.step(action)
+    #frames = []
 
+    for _ in range(6000):
+     #   frame = env.render()
+      # Store the frame
+    #    frames.append(frame)
+        action, _ = model.predict(observation, deterministic=True)  # agent policy that uses the observation and info
+        observation, reward, terminated, truncated, info = env.step(action)
+        
         if terminated or truncated:
             observation, info = env.reset()
-
+            break
+    
     env.close()
+    #clip = ImageSequenceClip(frames, fps=30)  # You can adjust the fps
+    #clip.write_videofile("ant_agent.mp4", codec="libx264")
 
 def eval_noisy_environment(environment, model_path, sb_alg, noise_percentage, noisy_indices=None, n_eval_episodes=10, results_file="../evaluations/"):
     # Create the environment and add noise to observations

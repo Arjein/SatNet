@@ -3,7 +3,7 @@ from gatv2_conv_wrapper import GATv2ConvWrapper
 from torch import nn
 import torch as th
 
-class SatNet(nn.Module):
+class NerveAttentionNetwork(nn.Module):
     """
     SatNet is a neural network model that utilizes graph attention layers (GATv2Conv)
     for policy and value function approximation in reinforcement learning.

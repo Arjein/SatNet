@@ -3,7 +3,7 @@ from gymnasium import spaces
 from stable_baselines3.common.policies import ActorCriticPolicy
 from stable_baselines3.common.type_aliases import Schedule
 from beta_distribution import BetaDistribution
-from satnet import SatNet
+from nerve_attention_net import NerveAttentionNetwork
 import numpy as np
 from torch import nn
 import torch as th
@@ -11,7 +11,7 @@ from stable_baselines3.common.distributions import Distribution
 from functools import partial
 from stable_baselines3.common.preprocessing import get_action_dim
 
-class SatNetBeta(ActorCriticPolicy):
+class BetaPolicy(ActorCriticPolicy):
     """
     SatNetBeta is an actor-critic policy that uses SatNet for feature extraction
     and a Beta distribution in order to sample actions from the Beta distribution. 
@@ -46,7 +46,7 @@ class SatNetBeta(ActorCriticPolicy):
         This replaces the default MLP extractor in the base ActorCriticPolicy with a custom
         graph-based network.
         """
-        self.mlp_extractor = SatNet(self.features_dim, last_layer_dim_pi=self.last_layer_dim_pi, last_layer_dim_vf=self.last_layer_dim_vf)
+        self.mlp_extractor = NerveAttentionNetwork(self.features_dim, last_layer_dim_pi=self.last_layer_dim_pi, last_layer_dim_vf=self.last_layer_dim_vf)
 
     
         
@@ -109,7 +109,7 @@ class SatNetBeta(ActorCriticPolicy):
             return super()._get_action_dist_from_latent(latent_pi)
 
 
-class SatNetGaussian(ActorCriticPolicy):
+class NormalPolicy(ActorCriticPolicy):
     """
     SatNetGaussian is an actor-critic policy that uses SatNet for feature extraction
     and a Gaussian distribution for modeling the policy. This class integrates the custom
@@ -140,5 +140,5 @@ class SatNetGaussian(ActorCriticPolicy):
         
         
     def _build_mlp_extractor(self) -> None:
-        self.mlp_extractor = SatNet(self.features_dim, last_layer_dim_pi=self.last_layer_dim_pi, last_layer_dim_vf=self.last_layer_dim_vf)
+        self.mlp_extractor = NerveAttentionNetwork(self.features_dim, last_layer_dim_pi=self.last_layer_dim_pi, last_layer_dim_vf=self.last_layer_dim_vf)
 
