@@ -3,7 +3,7 @@ from gymnasium import spaces
 from stable_baselines3.common.policies import ActorCriticPolicy
 from stable_baselines3.common.type_aliases import Schedule
 from beta_distribution import BetaDistribution
-from nerve_attention_net import NerveAttentionNetwork
+from satnet import SatNet
 import numpy as np
 from torch import nn
 import torch as th
@@ -46,7 +46,7 @@ class BetaPolicy(ActorCriticPolicy):
         This replaces the default MLP extractor in the base ActorCriticPolicy with a custom
         graph-based network.
         """
-        self.mlp_extractor = NerveAttentionNetwork(self.features_dim, last_layer_dim_pi=self.last_layer_dim_pi, last_layer_dim_vf=self.last_layer_dim_vf)
+        self.mlp_extractor = SatNet(self.features_dim, last_layer_dim_pi=self.last_layer_dim_pi, last_layer_dim_vf=self.last_layer_dim_vf)
 
     
         
@@ -140,5 +140,5 @@ class NormalPolicy(ActorCriticPolicy):
         
         
     def _build_mlp_extractor(self) -> None:
-        self.mlp_extractor = NerveAttentionNetwork(self.features_dim, last_layer_dim_pi=self.last_layer_dim_pi, last_layer_dim_vf=self.last_layer_dim_vf)
+        self.mlp_extractor = SatNet(self.features_dim, last_layer_dim_pi=self.last_layer_dim_pi, last_layer_dim_vf=self.last_layer_dim_vf)
 

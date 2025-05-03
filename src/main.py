@@ -4,7 +4,6 @@ import os
 from stable_baselines3 import PPO
 from gymnasium.wrappers import RescaleAction
 from beta_distribution import BetaDistribution
-#from beta_policy import SatNetBeta, SatNetGaussian
 from beta_policy import BetaPolicy, NormalPolicy
 from graph_feature_extractor import GraphFeatureExtractor
 from stable_baselines3.common.evaluation import evaluate_policy
@@ -13,7 +12,6 @@ import random
 import numpy as np
 import json
 from noise_wrapper import NoisyObservationWrapper
-from moviepy.editor import ImageSequenceClip
 
 # Set the seed
 # Set seed for random
@@ -21,8 +19,8 @@ random.seed(42)
 # Set seed for pytorch
 torch.manual_seed(42)
 np.random.seed(42)
-model_dir = "/Users/arjein/Desktop/msc_project/msc-project/models"
-log_dir = "/Users/arjein/Desktop/msc_project/msc-project/logs"
+model_dir = "../models"
+log_dir = "../logs"
 
 os.makedirs(model_dir, exist_ok=True)
 os.makedirs(log_dir, exist_ok=True)
